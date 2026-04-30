@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-37:12
-INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-37:12
-INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-37:12
-INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-37:12
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-53:12
+INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-53:12
+INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-53:12
+INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:2:1-53:12
 MERGED from [androidx.databinding:viewbinding:8.3.2] /home/cbastien/devtools/.gradle_home/caches/transforms-4/283fb5f2bffa718bdb58194ff18ece41/transformed/viewbinding-8.3.2/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.12.0] /home/cbastien/devtools/.gradle_home/caches/transforms-4/7359b89deab64c8a6fcd950187f7352f/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/cbastien/devtools/.gradle_home/caches/transforms-4/b3334b0eaec8759511feca9da841fcbe/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
@@ -92,9 +92,21 @@ ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.x
 		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:15:9-35
 	android:name
 		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:14:9-65
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:18:5-77
+	android:name
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:18:22-74
+uses-permission#android.permission.FOREGROUND_SERVICE_DATA_SYNC
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:20:5-87
+	android:name
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:20:22-84
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:24:5-77
+	android:name
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:24:22-74
 application
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:17:5-35:19
-INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:17:5-35:19
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:26:5-51:19
+INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:26:5-51:19
 MERGED from [com.google.android.material:material:1.12.0] /home/cbastien/devtools/.gradle_home/caches/transforms-4/7359b89deab64c8a6fcd950187f7352f/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.12.0] /home/cbastien/devtools/.gradle_home/caches/transforms-4/7359b89deab64c8a6fcd950187f7352f/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/cbastien/devtools/.gradle_home/caches/transforms-4/b3334b0eaec8759511feca9da841fcbe/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -116,35 +128,43 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /home/cbastien/devtools/.gr
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.13.1] /home/cbastien/devtools/.gradle_home/caches/transforms-4/cb90351fcd0ae70e194df22901837416/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:22:9-35
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:31:9-35
 	android:label
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:20:9-41
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:29:9-41
 	android:roundIcon
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:21:9-54
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:30:9-54
 	android:icon
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:19:9-43
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:28:9-43
 	android:allowBackup
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:18:9-35
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:27:9-35
 	android:theme
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:23:9-49
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:32:9-49
 activity#com.videoeditor.MainActivity
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:25:9-33:20
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:34:9-42:20
 	android:windowSoftInputMode
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:28:13-55
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:37:13-55
 	android:exported
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:27:13-36
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:36:13-36
 	android:name
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:26:13-41
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:35:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:29:13-32:29
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:38:13-41:29
 action#android.intent.action.MAIN
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:30:17-69
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:39:17-69
 	android:name
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:30:25-66
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:39:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:31:17-77
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:40:17-77
 	android:name
-		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:31:27-74
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:40:27-74
+service#com.videoeditor.VideoProcessingService
+ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:46:9-49:56
+	android:exported
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:48:13-37
+	android:foregroundServiceType
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:49:13-53
+	android:name
+		ADDED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml:47:13-51
 uses-sdk
 INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/cbastien/repos/local/VideoEditor/app/src/main/AndroidManifest.xml

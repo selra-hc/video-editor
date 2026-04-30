@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CB quick Video Editor</string>
+    <string name="app_name">Simple Video Editor</string>
     <string name="select_video">Select Video</string>
     <string name="apply_changes">Apply Changes</string>
     <string name="trim_range">Trim Range</string>
@@ -31,5 +31,5 @@
     <string name="crop_info" formatted="false">%d × %d px  (at %d, %d)</string>
 
     <!-- Footer -->
-    <string name="footer_text">Made by Cursor with love ❤️ 🇫🇷</string>
+    <string name="footer_text">CB - Made by Cursor with love ❤️ 🇫🇷</string>
 </resources>

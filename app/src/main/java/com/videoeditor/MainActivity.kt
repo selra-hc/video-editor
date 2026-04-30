@@ -1,5 +1,6 @@
 package com.videoeditor
 
+import android.graphics.Bitmap
 import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
@@ -8,7 +9,9 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import android.system.Os
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Menu
@@ -22,7 +25,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.transformer.ProgressHolder
 import androidx.media3.transformer.Transformer
 import com.videoeditor.databinding.ActivityMainBinding
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +43,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var player: ExoPlayer? = null
+    private var playerPfd: ParcelFileDescriptor? = null  // kept open while ExoPlayer uses the file
+    private var videoFilePath: String? = null             // real path for file:// URI, if readable
     private var videoUri: Uri? = null
     private var videoDurationMs: Long = 0L
 
@@ -55,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     // ── Processing ────────────────────────────────────────────────────────────
 
     private var positionJob: Job? = null
+    private var metadataJob: Job? = null   // IO coroutine that reads metadata + thumbnails
     private var activeTransformer: Transformer? = null
 
     // ── Activity result launchers ─────────────────────────────────────────────
@@ -101,8 +110,11 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         positionJob?.cancel()
+        metadataJob?.cancel()
         player?.release()
         player = null
+        playerPfd?.close()
+        playerPfd = null
         activeTransformer?.cancel()
         activeTransformer = null
     }
@@ -200,7 +212,7 @@ class MainActivity : AppCompatActivity() {
         videoDisplayH = 0
         binding.noVideoPlaceholder.isVisible = false
 
-        // Reset all tool toggles (this auto-fires listeners, hiding sections + disabling crop)
+        // Reset all tool toggles (auto-fires listeners → hides sections, disables crop)
         binding.btnToggleTrim.isChecked = false
         binding.btnToggleRotation.isChecked = false
         binding.btnToggleCrop.isChecked = false
@@ -211,25 +223,62 @@ class MainActivity : AppCompatActivity() {
         setRotationTextSilently(0)
         refreshEffectiveRotationHint()
 
+        // Release any previous player / metadata load
         positionJob?.cancel()
+        metadataJob?.cancel()
+        playerPfd?.close()
+        playerPfd = null
+        videoFilePath = null
         player?.release()
+
+        // ── ExoPlayer for preview playback only ───────────────────────────────
+        // We no longer rely on ExoPlayer to supply the video duration.  For large
+        // files (e.g. 9 GB Samsung UHD HEVC) with the moov atom at the end of the
+        // file, ExoPlayer can reach STATE_READY while still returning C.TIME_UNSET
+        // for the duration, which would leave all tool toggles permanently disabled.
+        // Get the real file size via fstat so SeekableContentDataSource can report it
+        // to Mp4Extractor (needed to locate the moov atom at the end of large files).
+        val pfd = runCatching { contentResolver.openFileDescriptor(uri, "r") }.getOrNull()
+        playerPfd = pfd
+        val fileSize = pfd?.let {
+            try { Os.fstat(it.fileDescriptor).st_size } catch (_: Exception) { -1L }
+        } ?: -1L
+
+        // Preferred: resolve the actual file path.  With READ_MEDIA_VIDEO / READ_EXTERNAL_STORAGE
+        // already granted, File(path).canRead() returns true for DCIM/Camera files, and
+        // ExoPlayer's FileDataSource uses RandomAccessFile — O(1) seeking at any file size.
+        val filePath = runCatching {
+            contentResolver.query(uri, arrayOf(MediaStore.Video.Media.DATA), null, null, null)
+                ?.use { c -> if (c.moveToFirst() && !c.isNull(0)) c.getString(0) else null }
+        }.getOrNull()
+        videoFilePath = filePath?.takeIf { File(it).canRead() }
 
         val exo = ExoPlayer.Builder(this).build().also { player = it }
         binding.playerView.player = exo
-        exo.setMediaItem(MediaItem.fromUri(uri))
+        val mediaItem = MediaItem.fromUri(uri)
+        when {
+            videoFilePath != null -> {
+                // file:// URI → FileDataSource → RandomAccessFile: true 64-bit random
+                // access for files of any size, including 15 GB HEVC recordings.
+                exo.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(videoFilePath!!))))
+            }
+            fileSize > 0 -> {
+                // Fallback: SeekableContentDataSource uses openFileDescriptor() (regular-file
+                // fd, avoids the pipe fd that openTypedAssetFileDescriptor can return on
+                // Samsung for large files) + Os.lseek for O(1) seeks.
+                val factory = DataSource.Factory {
+                    SeekableContentDataSource(contentResolver, uri, fileSize)
+                }
+                exo.setMediaSource(ProgressiveMediaSource.Factory(factory).createMediaSource(mediaItem))
+            }
+            else -> exo.setMediaItem(mediaItem)
+        }
         exo.prepare()
         exo.playWhenReady = false
 
         exo.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_READY && videoDurationMs == 0L) {
-                    val dur = exo.duration
-                    if (dur > 0L) {
-                        videoDurationMs = dur
-                        onVideoReady(uri)
-                    }
-                }
-            }
+            // Only used for the crop overlay: ExoPlayer reports display-oriented size
+            // as soon as the first decoded frame is available.
             override fun onVideoSizeChanged(videoSize: VideoSize) {
                 if (videoSize.width > 0 && videoSize.height > 0) {
                     videoDisplayW = videoSize.width
@@ -240,23 +289,93 @@ class MainActivity : AppCompatActivity() {
         })
 
         startPositionUpdater()
-    }
 
-    private fun onVideoReady(uri: Uri) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            originalRotationDeg = readRotationFromMetadata(uri)
-            val (w, h) = readEncodedDimensions(uri)
-            val dispW = if (originalRotationDeg == 90 || originalRotationDeg == 270) h else w
-            val dispH = if (originalRotationDeg == 90 || originalRotationDeg == 270) w else h
-            withContext(Dispatchers.Main) {
-                if (dispW > 0 && dispH > 0 && videoDisplayW == 0) {
-                    videoDisplayW = dispW
-                    videoDisplayH = dispH
-                    binding.cropOverlayView.setVideoInfo(videoDisplayW, videoDisplayH)
+        // ── Primary metadata source: MediaMetadataRetriever (IO thread) ───────
+        // MediaMetadataRetriever reads directly from the file descriptor, handles
+        // moov-at-end MP4 containers, and returns the correct duration regardless
+        // of ExoPlayer's parsing state.  We also generate thumbnails here so we
+        // only open the (potentially 9 GB) file once.
+        metadataJob = lifecycleScope.launch(Dispatchers.IO) {
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(this@MainActivity, uri)
+
+                val dur  = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                              ?.toLongOrNull() ?: 0L
+                val rot  = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                              ?.toIntOrNull() ?: 0
+                val encW = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                              ?.toIntOrNull() ?: 0
+                val encH = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                              ?.toIntOrNull() ?: 0
+
+                if (dur <= 0L) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Could not read video metadata — unsupported format?",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                    return@launch
                 }
+
+                // Display dimensions account for the rotation hint
+                val dispW = if (rot == 90 || rot == 270) encH else encW
+                val dispH = if (rot == 90 || rot == 270) encW else encH
+
+                withContext(Dispatchers.Main) {
+                    videoDurationMs    = dur
+                    originalRotationDeg = rot
+                    if (dispW > 0 && dispH > 0) {
+                        videoDisplayW = dispW
+                        videoDisplayH = dispH
+                        binding.cropOverlayView.setVideoInfo(dispW, dispH)
+                    }
+                    onVideoMetadataReady()
+                }
+
+                // Generate thumbnails in the same coroutine — retriever is already open
+                val count  = 12
+                val thumbW = 160
+                val thumbH = 90
+                val bitmaps = (0 until count).mapNotNull { i ->
+                    val timeUs = dur * 1_000L * i / count
+                    @Suppress("DEPRECATION")
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+                        retriever.getScaledFrameAtTime(
+                            timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, thumbW, thumbH,
+                        )
+                    } else {
+                        val bmp = retriever.getFrameAtTime(
+                            timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                        ) ?: return@mapNotNull null
+                        val scaled = Bitmap.createScaledBitmap(bmp, thumbW, thumbH, true)
+                        if (scaled !== bmp) bmp.recycle()
+                        scaled
+                    }
+                }
+                withContext(Dispatchers.Main) { binding.trimRangeView.setThumbnails(bitmaps) }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Could not open video: ${e.message}",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+            } finally {
+                retriever.release()
             }
         }
+    }
 
+    /**
+     * Called on the main thread once video metadata (duration, rotation, dimensions) is
+     * available from [MediaMetadataRetriever].  Initialises the UI and enables controls.
+     */
+    private fun onVideoMetadataReady() {
         binding.trimRangeView.setDuration(videoDurationMs)
         binding.trimRangeView.setStartTime(0L)
         binding.trimRangeView.setEndTime(videoDurationMs)
@@ -264,33 +383,10 @@ class MainActivity : AppCompatActivity() {
         setTextSilently(binding.etEndTime, formatSec(videoDurationMs))
         refreshLabels()
 
-        // Enable all interactive controls now that a video is loaded
         binding.btnCut.isEnabled = true
         binding.btnToggleTrim.isEnabled = true
         binding.btnToggleRotation.isEnabled = true
         binding.btnToggleCrop.isEnabled = true
-
-        generateThumbnails(uri)
-    }
-
-    // ── Thumbnail generation ──────────────────────────────────────────────────
-
-    private fun generateThumbnails(uri: Uri) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val retriever = MediaMetadataRetriever()
-            try {
-                retriever.setDataSource(this@MainActivity, uri)
-                val count = 12
-                val bitmaps = (0 until count).mapNotNull { i ->
-                    val timeUs = videoDurationMs * 1_000L * i / count
-                    retriever.getFrameAtTime(timeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                }
-                withContext(Dispatchers.Main) { binding.trimRangeView.setThumbnails(bitmaps) }
-            } catch (_: Exception) {
-            } finally {
-                retriever.release()
-            }
-        }
     }
 
     // ── Playback position updater ─────────────────────────────────────────────
@@ -382,8 +478,29 @@ class MainActivity : AppCompatActivity() {
     private fun startLosslessProcess(uri: Uri, startMs: Long, endMs: Long, rotDelta: Int) {
         showProgress(getString(R.string.cutting_video))
         lifecycleScope.launch(Dispatchers.IO) {
-            val cacheOut = File(cacheDir, "cut_${System.currentTimeMillis()}.mp4")
+            // Use external cache dir (main storage partition) so large UHD files fit.
+            // Fall back to internal cacheDir only if external is unavailable.
+            val outputDir = externalCacheDir ?: cacheDir
+            val cacheOut  = File(outputDir, "cut_${System.currentTimeMillis()}.mp4")
             try {
+                // Warn about the 4 GB MediaMuxer limit on API < 29.
+                // (On API 29+ the MP4 container can exceed 4 GB.)
+                val estimatedOutputBytes = estimateOutputSize(startMs, endMs)
+                if (estimatedOutputBytes > 4L * 1024 * 1024 * 1024 &&
+                    android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q
+                ) {
+                    withContext(Dispatchers.Main) {
+                        hideProgress()
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Output exceeds 4 GB limit on Android 9 and older. " +
+                                "Trim to a shorter clip or upgrade to Android 10+.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    }
+                    return@launch
+                }
+
                 VideoTrimmer.trim(
                     context       = this@MainActivity,
                     inputUri      = uri,
@@ -391,13 +508,18 @@ class MainActivity : AppCompatActivity() {
                     startMs       = startMs,
                     endMs         = endMs,
                     rotationDelta = rotDelta,
+                    onProgress    = { pct -> runOnUiThread { updateProgress(pct) } },
                 )
                 val savedUri = saveToMediaStore(cacheOut)
                 withContext(Dispatchers.Main) { hideProgress(); showSaveResult(savedUri) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     hideProgress()
-                    Toast.makeText(this@MainActivity, "Failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        buildErrorMessage(e),
+                        Toast.LENGTH_LONG,
+                    ).show()
                 }
             } finally {
                 cacheOut.delete()
@@ -413,7 +535,56 @@ class MainActivity : AppCompatActivity() {
         rotDelta: Int,
     ) {
         showProgress(getString(R.string.processing_video))
-        val cacheOut = File(cacheDir, "proc_${System.currentTimeMillis()}.mp4")
+        val outputDir = externalCacheDir ?: cacheDir
+        val cacheOut  = File(outputDir, "proc_${System.currentTimeMillis()}.mp4")
+
+        // Fully release ExoPlayer so the hardware HEVC decoder is freed *synchronously*
+        // before Transformer tries to acquire it.  stop()+clearMediaItems() only
+        // schedules an async release; release() is synchronous and guarantees the
+        // codec is available when Transformer initialises its asset loader.
+        val resumePosition = player?.currentPosition ?: 0L
+        binding.playerView.player = null
+        player?.release()
+        player = null
+        playerPfd?.close()
+        playerPfd = null
+
+        // Rebuild ExoPlayer preview after Transformer finishes (success or failure).
+        fun restorePlayer() {
+            val pfd = runCatching { contentResolver.openFileDescriptor(uri, "r") }.getOrNull()
+            playerPfd = pfd
+            val fileSize = pfd?.let {
+                try { Os.fstat(it.fileDescriptor).st_size } catch (_: Exception) { -1L }
+            } ?: -1L
+            val exo = ExoPlayer.Builder(this).build().also { player = it }
+            binding.playerView.player = exo
+            exo.addListener(object : Player.Listener {
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    if (videoSize.width > 0 && videoSize.height > 0) {
+                        videoDisplayW = videoSize.width
+                        videoDisplayH = videoSize.height
+                        binding.cropOverlayView.setVideoInfo(videoDisplayW, videoDisplayH)
+                    }
+                }
+            })
+            val mediaItem = MediaItem.fromUri(uri)
+            when {
+                videoFilePath != null -> {
+                    exo.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(videoFilePath!!))))
+                }
+                fileSize > 0 -> {
+                    val factory = DataSource.Factory {
+                        SeekableContentDataSource(contentResolver, uri, fileSize)
+                    }
+                    exo.setMediaSource(ProgressiveMediaSource.Factory(factory).createMediaSource(mediaItem))
+                }
+                else -> exo.setMediaItem(mediaItem)
+            }
+            exo.seekTo(resumePosition)
+            exo.prepare()
+            exo.playWhenReady = false
+        }
+
         activeTransformer = VideoProcessor.process(
             context          = this,
             inputUri         = uri,
@@ -431,6 +602,7 @@ class MainActivity : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         activeTransformer = null
                         hideProgress()
+                        restorePlayer()
                         showSaveResult(savedUri)
                     }
                 }
@@ -439,9 +611,11 @@ class MainActivity : AppCompatActivity() {
                 cacheOut.delete()
                 activeTransformer = null
                 hideProgress()
-                Toast.makeText(this, "Processing failed: ${e.message}", Toast.LENGTH_LONG).show()
+                restorePlayer()
+                Toast.makeText(this, buildErrorMessage(e), Toast.LENGTH_LONG).show()
             },
         )
+        pollTransformerProgress()
     }
 
     // ── MediaStore helper ─────────────────────────────────────────────────────
@@ -470,38 +644,49 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) { null }
     }
 
-    // ── Metadata helpers ──────────────────────────────────────────────────────
-
-    private fun readRotationFromMetadata(uri: Uri): Int {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(this, uri)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
-                ?.toIntOrNull() ?: 0
-        } catch (_: Exception) { 0 } finally { retriever.release() }
-    }
-
-    private fun readEncodedDimensions(uri: Uri): Pair<Int, Int> {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(this, uri)
-            val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
-            val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
-            w to h
-        } catch (_: Exception) { 0 to 0 } finally { retriever.release() }
-    }
-
     // ── UI helpers ────────────────────────────────────────────────────────────
 
     private fun showProgress(label: String) {
         binding.tvProgressLabel.text = label
+        binding.progressBar.isIndeterminate = true
+        binding.tvProgressPercent.isVisible = false
         binding.progressLayout.isVisible = true
         binding.btnCut.isEnabled = false
+        VideoProcessingService.startProcessing(this, label)
+    }
+
+    private fun updateProgress(percent: Int) {
+        if (binding.progressBar.isIndeterminate) {
+            binding.progressBar.isIndeterminate = false
+        }
+        binding.progressBar.setProgressCompat(percent, true)
+        binding.tvProgressPercent.text = "$percent%"
+        binding.tvProgressPercent.isVisible = true
+        VideoProcessingService.updateProgress(this, percent, binding.tvProgressLabel.text.toString())
     }
 
     private fun hideProgress() {
         binding.progressLayout.isVisible = false
         binding.btnCut.isEnabled = true
+        VideoProcessingService.stopProcessing(this)
+    }
+
+    /**
+     * Polls [Transformer.getProgress] every 500 ms while a transformation is active and
+     * forwards the result to [updateProgress].  The loop exits automatically once
+     * [activeTransformer] becomes null (set to null by success/failure callbacks).
+     */
+    private fun pollTransformerProgress() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            val holder = ProgressHolder()
+            while (true) {
+                delay(500)
+                val transformer = activeTransformer ?: break
+                if (transformer.getProgress(holder) == Transformer.PROGRESS_STATE_AVAILABLE) {
+                    updateProgress(holder.progress)
+                }
+            }
+        }
     }
 
     private fun showSaveResult(savedUri: Uri?) {
@@ -535,6 +720,43 @@ class MainActivity : AppCompatActivity() {
     private fun secInputToMs(s: Editable?): Long? {
         val sec = s?.toString()?.toDoubleOrNull() ?: return null
         return (sec * 1_000.0).toLong().coerceIn(0L, videoDurationMs)
+    }
+
+    /**
+     * Rough estimate of output file size for the selected time range, based on the
+     * source file size proportionally scaled to the clip duration.  Used to warn
+     * about the 4 GB MediaMuxer limit before starting a long operation.
+     */
+    private fun estimateOutputSize(startMs: Long, endMs: Long): Long {
+        if (videoDurationMs <= 0L) return 0L
+        val sourceSizeBytes = try {
+            contentResolver.openFileDescriptor(videoUri ?: return 0L, "r")
+                ?.use { it.statSize } ?: 0L
+        } catch (_: Exception) { 0L }
+        val ratio = (endMs - startMs).toDouble() / videoDurationMs.toDouble()
+        return (sourceSizeBytes * ratio).toLong()
+    }
+
+    /**
+     * Turns a raw exception into a user-readable error message, flagging common
+     * root causes that occur specifically with large or unusual video files.
+     */
+    private fun buildErrorMessage(e: Exception): String {
+        val msg = e.message ?: e.javaClass.simpleName
+        return when {
+            msg.contains("ENOMEM", ignoreCase = true) ||
+            msg.contains("OutOfMemory", ignoreCase = true) ->
+                "Not enough memory to process this video. Try trimming to a shorter clip."
+            msg.contains("ENOSPC", ignoreCase = true) ||
+            msg.contains("No space", ignoreCase = true) ->
+                "Not enough storage space for the output file. Free up space and try again."
+            msg.contains("ETIMEDOUT", ignoreCase = true) ||
+            msg.contains("timeout", ignoreCase = true) ->
+                "Operation timed out — the video may be too large or the device too slow."
+            msg.contains("ERROR_IO", ignoreCase = true) ->
+                "Could not read the video file. Make sure storage access is granted."
+            else -> "Processing failed: $msg"
+        }
     }
 
     abstract class SimpleTextWatcher : TextWatcher {

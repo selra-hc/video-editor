@@ -11,6 +11,7 @@ color toggle_icon_tint
 color trim_border
 color trim_handle
 color white
+drawable ic_apply
 drawable ic_content_cut
 drawable ic_crop
 drawable ic_rotate
@@ -30,6 +31,7 @@ id etRotation
 id etStartTime
 id noVideoPlaceholder
 id playerView
+id progressBar
 id progressLayout
 id rotationSection
 id toolbar
@@ -40,6 +42,7 @@ id tvDurationDisplay
 id tvEffectiveRotation
 id tvEndDisplay
 id tvProgressLabel
+id tvProgressPercent
 id tvStartDisplay
 layout activity_main
 menu menu_main

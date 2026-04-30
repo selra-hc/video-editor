@@ -16,6 +16,7 @@ import androidx.viewbinding.ViewBindings;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.videoeditor.CropOverlayView;
 import com.videoeditor.R;
@@ -71,6 +72,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final PlayerView playerView;
 
   @NonNull
+  public final LinearProgressIndicator progressBar;
+
+  @NonNull
   public final FrameLayout progressLayout;
 
   @NonNull
@@ -101,6 +105,9 @@ public final class ActivityMainBinding implements ViewBinding {
   public final TextView tvProgressLabel;
 
   @NonNull
+  public final TextView tvProgressPercent;
+
+  @NonNull
   public final TextView tvStartDisplay;
 
   private ActivityMainBinding(@NonNull CoordinatorLayout rootView,
@@ -111,11 +118,12 @@ public final class ActivityMainBinding implements ViewBinding {
       @NonNull LinearLayout cropSection, @NonNull TextInputEditText etEndTime,
       @NonNull TextInputEditText etRotation, @NonNull TextInputEditText etStartTime,
       @NonNull LinearLayout noVideoPlaceholder, @NonNull PlayerView playerView,
-      @NonNull FrameLayout progressLayout, @NonNull LinearLayout rotationSection,
-      @NonNull MaterialToolbar toolbar, @NonNull TrimRangeView trimRangeView,
-      @NonNull LinearLayout trimSection, @NonNull TextView tvCropInfo,
-      @NonNull TextView tvDurationDisplay, @NonNull TextView tvEffectiveRotation,
-      @NonNull TextView tvEndDisplay, @NonNull TextView tvProgressLabel,
+      @NonNull LinearProgressIndicator progressBar, @NonNull FrameLayout progressLayout,
+      @NonNull LinearLayout rotationSection, @NonNull MaterialToolbar toolbar,
+      @NonNull TrimRangeView trimRangeView, @NonNull LinearLayout trimSection,
+      @NonNull TextView tvCropInfo, @NonNull TextView tvDurationDisplay,
+      @NonNull TextView tvEffectiveRotation, @NonNull TextView tvEndDisplay,
+      @NonNull TextView tvProgressLabel, @NonNull TextView tvProgressPercent,
       @NonNull TextView tvStartDisplay) {
     this.rootView = rootView;
     this.appBarLayout = appBarLayout;
@@ -132,6 +140,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.etStartTime = etStartTime;
     this.noVideoPlaceholder = noVideoPlaceholder;
     this.playerView = playerView;
+    this.progressBar = progressBar;
     this.progressLayout = progressLayout;
     this.rotationSection = rotationSection;
     this.toolbar = toolbar;
@@ -142,6 +151,7 @@ public final class ActivityMainBinding implements ViewBinding {
     this.tvEffectiveRotation = tvEffectiveRotation;
     this.tvEndDisplay = tvEndDisplay;
     this.tvProgressLabel = tvProgressLabel;
+    this.tvProgressPercent = tvProgressPercent;
     this.tvStartDisplay = tvStartDisplay;
   }
 
@@ -256,6 +266,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.progressBar;
+      LinearProgressIndicator progressBar = ViewBindings.findChildViewById(rootView, id);
+      if (progressBar == null) {
+        break missingId;
+      }
+
       id = R.id.progressLayout;
       FrameLayout progressLayout = ViewBindings.findChildViewById(rootView, id);
       if (progressLayout == null) {
@@ -316,6 +332,12 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvProgressPercent;
+      TextView tvProgressPercent = ViewBindings.findChildViewById(rootView, id);
+      if (tvProgressPercent == null) {
+        break missingId;
+      }
+
       id = R.id.tvStartDisplay;
       TextView tvStartDisplay = ViewBindings.findChildViewById(rootView, id);
       if (tvStartDisplay == null) {
@@ -325,9 +347,9 @@ public final class ActivityMainBinding implements ViewBinding {
       return new ActivityMainBinding((CoordinatorLayout) rootView, appBarLayout, btnCut,
           btnRotateMinus90, btnRotatePlus90, btnToggleCrop, btnToggleRotation, btnToggleTrim,
           cropOverlayView, cropSection, etEndTime, etRotation, etStartTime, noVideoPlaceholder,
-          playerView, progressLayout, rotationSection, toolbar, trimRangeView, trimSection,
-          tvCropInfo, tvDurationDisplay, tvEffectiveRotation, tvEndDisplay, tvProgressLabel,
-          tvStartDisplay);
+          playerView, progressBar, progressLayout, rotationSection, toolbar, trimRangeView,
+          trimSection, tvCropInfo, tvDurationDisplay, tvEffectiveRotation, tvEndDisplay,
+          tvProgressLabel, tvProgressPercent, tvStartDisplay);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

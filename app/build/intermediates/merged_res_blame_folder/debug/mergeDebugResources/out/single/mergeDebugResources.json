@@ -1,7 +1,15 @@
 [
     {
-        "merged": "com.videoeditor.app-debug-40:/drawable_ic_crop.xml.flat",
-        "source": "com.videoeditor.app-main-42:/drawable/ic_crop.xml"
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/drawable_ic_crop.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/drawable/ic_crop.xml"
+    },
+    {
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/drawable_ic_apply.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/drawable/ic_apply.xml"
+    },
+    {
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/menu_menu_main.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/menu/menu_main.xml"
     },
     {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
@@ -20,6 +28,10 @@
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/mipmap-xxhdpi/ic_launcher.png"
     },
     {
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/color_toggle_icon_tint.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/color/toggle_icon_tint.xml"
+    },
+    {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/mipmap-mdpi_ic_launcher.png.flat",
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/mipmap-mdpi/ic_launcher.png"
     },
@@ -32,16 +44,8 @@
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/mipmap-xhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.videoeditor.app-debug-40:/menu_menu_main.xml.flat",
-        "source": "com.videoeditor.app-main-42:/menu/menu_main.xml"
-    },
-    {
-        "merged": "com.videoeditor.app-debug-40:/drawable_ic_rotate.xml.flat",
-        "source": "com.videoeditor.app-main-42:/drawable/ic_rotate.xml"
-    },
-    {
-        "merged": "com.videoeditor.app-debug-40:/color_toggle_bg_tint.xml.flat",
-        "source": "com.videoeditor.app-main-42:/color/toggle_bg_tint.xml"
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/color_toggle_bg_tint.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/color/toggle_bg_tint.xml"
     },
     {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/mipmap-xxhdpi_ic_launcher_round.png.flat",
@@ -52,16 +56,16 @@
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/drawable/ic_video_library.xml"
     },
     {
+        "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/drawable_ic_rotate.xml.flat",
+        "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/drawable/ic_rotate.xml"
+    },
+    {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/mipmap-xxxhdpi_ic_launcher.png.flat",
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/mipmap-xxxhdpi/ic_launcher.png"
     },
     {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/drawable_ic_content_cut.xml.flat",
         "source": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-main-42:/drawable/ic_content_cut.xml"
-    },
-    {
-        "merged": "com.videoeditor.app-debug-40:/color_toggle_icon_tint.xml.flat",
-        "source": "com.videoeditor.app-main-42:/color/toggle_icon_tint.xml"
     },
     {
         "merged": "/home/cbastien/devtools/.gradle_home/daemon/8.6/com.videoeditor.app-debug-40:/mipmap-xhdpi_ic_launcher.png.flat",

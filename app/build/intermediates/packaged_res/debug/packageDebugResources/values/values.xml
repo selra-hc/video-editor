@@ -9,7 +9,7 @@
     <color name="trim_border">#FFFF6D00</color>
     <color name="trim_handle">#FFFF6D00</color>
     <color name="white">#FFFFFFFF</color>
-    <string name="app_name">CB quick Video Editor</string>
+    <string name="app_name">Simple Video Editor</string>
     <string name="apply_changes">Apply Changes</string>
     <string formatted="false" name="crop_info">%d × %d px  (at %d, %d)</string>
     <string name="crop_label">Crop</string>
@@ -19,7 +19,7 @@
     <string name="error_end_before_start">End time must be after start time</string>
     <string name="error_no_video">Please select a video first</string>
     <string name="error_selection_too_short">Selection is too short (minimum 0.1 s)</string>
-    <string name="footer_text">Made by Cursor with love ❤️ 🇫🇷</string>
+    <string name="footer_text">CB - Made by Cursor with love ❤️ 🇫🇷</string>
     <string name="processing_video">Processing video…</string>
     <string name="rotate_minus_90">−90°</string>
     <string name="rotate_plus_90">+90°</string>

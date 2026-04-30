@@ -20,6 +20,17 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+
+    <!-- Foreground service for long video-processing operations -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required on Android 14+ for dataSync foreground service type -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!--
+         Required on Android 13+ to post notifications (foreground-service notifications
+         are exempt when the service starts while the app is in the foreground, but the
+         permission is declared here for completeness and future-proofing)
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <permission
@@ -48,6 +59,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+             Foreground service that shows the progress notification during processing.
+             dataSync is the appropriate type for encode/mux operations on Android 10+.
+        -->
+        <service
+            android:name="com.videoeditor.VideoProcessingService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

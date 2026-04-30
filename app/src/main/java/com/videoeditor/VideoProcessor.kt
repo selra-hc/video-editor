@@ -60,12 +60,21 @@ object VideoProcessor {
         val videoEffects = mutableListOf<androidx.media3.common.Effect>()
 
         if (cropPixels != null && videoDisplayW > 0 && videoDisplayH > 0) {
+            // Align the crop rect to even pixel boundaries before NDC conversion.
+            // H.264/H.265 encoders require even (sometimes mod-16) frame dimensions;
+            // an odd-pixel crop produces an encoder init failure that surfaces as
+            // "Asset loader error" from Transformer.
+            val cl = cropPixels.left   and (-2)          // floor to even
+            val ct = cropPixels.top    and (-2)
+            val cr = (cropPixels.right  and (-2)).coerceAtLeast(cl + 2)   // floor, min +2
+            val cb = (cropPixels.bottom and (-2)).coerceAtLeast(ct + 2)
+
             // Convert pixel rect to NDC [-1, 1] coords expected by Crop.
             // NDC Y increases upward, so top-of-frame = +1 and bottom-of-frame = -1.
-            val ndcLeft   =  cropPixels.left.toFloat()   / videoDisplayW * 2f - 1f
-            val ndcRight  =  cropPixels.right.toFloat()  / videoDisplayW * 2f - 1f
-            val ndcTop    =  1f - cropPixels.top.toFloat()    / videoDisplayH * 2f
-            val ndcBottom =  1f - cropPixels.bottom.toFloat() / videoDisplayH * 2f
+            val ndcLeft   =  cl.toFloat() / videoDisplayW * 2f - 1f
+            val ndcRight  =  cr.toFloat() / videoDisplayW * 2f - 1f
+            val ndcTop    =  1f - ct.toFloat() / videoDisplayH * 2f
+            val ndcBottom =  1f - cb.toFloat() / videoDisplayH * 2f
             videoEffects.add(Crop(ndcLeft, ndcRight, ndcBottom, ndcTop))
         }
 

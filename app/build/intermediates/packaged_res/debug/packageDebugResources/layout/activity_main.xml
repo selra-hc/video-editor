@@ -423,7 +423,7 @@
                 android:layout_marginEnd="16dp"
                 android:text="@string/apply_changes"
                 android:enabled="false"
-                app:icon="@drawable/ic_content_cut" />
+                app:icon="@drawable/ic_apply" />
 
             <!-- Footer -->
             <TextView
@@ -462,24 +462,35 @@
             app:cardCornerRadius="20dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="260dp"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:padding="36dp">
-
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="true" />
 
                 <TextView
                     android:id="@+id/tvProgressLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:text="@string/cutting_video"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/progressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:indeterminate="true"
+                    app:trackCornerRadius="4dp" />
+
+                <TextView
+                    android:id="@+id/tvProgressPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorPrimary"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
