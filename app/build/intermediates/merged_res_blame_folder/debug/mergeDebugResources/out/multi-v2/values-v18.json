@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.videoeditor.app-mergeDebugResources-38:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/home/cbastien/devtools/.gradle_home/caches/transforms-4/394724a5ec22b24f179d6bc88c8e0221/transformed/appcompat-1.7.0/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}

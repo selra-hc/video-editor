@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.videoeditor.app-mergeDebugResources-38:/values-watch-v20/values-watch-v20.xml",
+            "map": [
+                {
+                    "source": "/home/cbastien/devtools/.gradle_home/caches/transforms-4/394724a5ec22b24f179d6bc88c8e0221/transformed/appcompat-1.7.0/res/values-watch-v20/values-watch-v20.xml",
+                    "from": {
+                        "startLines": "2,5,8",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,214,385",
+                        "endLines": "4,7,10",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "209,380,553"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CB quick Video Editor</string>
+    <string name="select_video">Select Video</string>
+    <string name="apply_changes">Apply Changes</string>
+    <string name="trim_range">Trim Range</string>
+    <string name="start_time_hint">Start (seconds)</string>
+    <string name="end_time_hint">End (seconds)</string>
+    <string name="cutting_video">Cutting video…</string>
+    <string name="processing_video">Processing video…</string>
+    <string name="tap_to_select">Tap to select a video</string>
+    <string name="saved_ok">Saved to Movies/VideoEditor</string>
+    <string name="error_no_video">Please select a video first</string>
+    <string name="error_selection_too_short">Selection is too short (minimum 0.1 s)</string>
+    <string name="error_end_before_start">End time must be after start time</string>
+
+    <!-- Toggle labels -->
+    <string name="toggle_trim">Trim</string>
+    <string name="toggle_rotation">Rotation</string>
+    <string name="toggle_crop">Crop</string>
+
+    <!-- Rotation -->
+    <string name="rotation_label">Rotation</string>
+    <string name="rotation_hint">Angle (°)</string>
+    <string name="rotate_minus_90">−90°</string>
+    <string name="rotate_plus_90">+90°</string>
+    <string name="effective_rotation">Lossless effective rotation: %d° (non-90° angles re-encode)</string>
+
+    <!-- Crop -->
+    <string name="crop_label">Crop</string>
+    <string name="crop_info" formatted="false">%d × %d px  (at %d, %d)</string>
+
+    <!-- Footer -->
+    <string name="footer_text">Made by Cursor with love ❤️ 🇫🇷</string>
+</resources>
