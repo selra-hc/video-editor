@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 
 /**
  * Foreground service that shows a persistent progress notification during video processing.
@@ -38,7 +39,7 @@ class VideoProcessingService : Service() {
                 action = ACTION_START
                 putExtra(EXTRA_LABEL, label)
             }
-            context.startForegroundService(intent)
+            ContextCompat.startForegroundService(context, intent)
         }
 
         /** Update the progress bar in the notification (0-100). Pass -1 for indeterminate. */
@@ -48,13 +49,14 @@ class VideoProcessingService : Service() {
                 putExtra(EXTRA_LABEL, label)
                 putExtra(EXTRA_PERCENT, percent)
             }
-            context.startService(intent)
+            ContextCompat.startForegroundService(context, intent)
         }
 
         /** Remove the notification and stop the service. */
         fun stopProcessing(context: Context) {
-            context.startService(
-                Intent(context, VideoProcessingService::class.java).apply { action = ACTION_STOP }
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, VideoProcessingService::class.java).apply { action = ACTION_STOP },
             )
         }
 

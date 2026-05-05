@@ -53,13 +53,14 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
     implementation("androidx.activity:activity-ktx:1.9.0")
 
-    // ExoPlayer (Media3) for video preview
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
-
-    // Media3 Transformer + Effect for crop and arbitrary-angle rotation (re-encode path)
+    // Media3: common API types (MediaItem etc.) used by VideoProcessor, plus Transformer + Effect.
+    // media3-exoplayer and media3-ui are no longer needed — they were for the old ExoPlayer preview
+    // which was replaced by android.media.MediaPlayer. media3-common is still required directly.
+    implementation("androidx.media3:media3-common:1.3.1")
     implementation("androidx.media3:media3-transformer:1.3.1")
     implementation("androidx.media3:media3-effect:1.3.1")
 
     // Lossless trimming uses Android's built-in MediaExtractor + MediaMuxer (no extra dep).
+
+    testImplementation("junit:junit:4.13.2")
 }

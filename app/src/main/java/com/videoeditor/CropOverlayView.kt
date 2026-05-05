@@ -9,7 +9,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 /**
- * A transparent overlay drawn on top of the video PlayerView.
+ * A transparent overlay drawn on top of the video TextureView.
  *
  * When enabled it renders:
  *  - A dimmed overlay outside the crop rectangle
