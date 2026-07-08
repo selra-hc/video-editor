@@ -1,4 +1,4 @@
-# Video Cutter — Android App
+# Video Editor — Android App
 
 A native Android application that rotates and/or cuts a segment out of any video **without re-encoding**, preserving the original frame rate, resolution, quality, and audio exactly as-is. Trimming is also available. though reencoding is mandatory in this case. It is implemented to be as lossless as possible.
 
